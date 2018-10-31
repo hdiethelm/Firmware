@@ -57,7 +57,7 @@ lis3mdl::calibrate(struct lis3mdl_bus_option &bus)
 
 	if (fd < 0) {
 		PX4_WARN("%s open failed (try 'lis3mdl start' if the driver is not running", path);
-		return 1;
+		return PX4_ERROR;
 	}
 
 	if ((ret = ioctl(fd, MAGIOCCALIBRATE, fd)) != OK) {
@@ -74,7 +74,7 @@ lis3mdl::info(struct lis3mdl_bus_option &bus)
 {
 	PX4_INFO("running on bus: %u (%s)", (unsigned)bus.bus_id, bus.devpath);
 	bus.dev->print_info();
-	return 0;
+	return PX4_OK;
 }
 
 int
@@ -85,13 +85,13 @@ lis3mdl::init(struct lis3mdl_bus_option &bus)
 	int fd = open(path, O_RDONLY);
 
 	if (fd < 0) {
-		return 1;
+		return PX4_ERROR;
 	}
 
 	if (ioctl(fd, SENSORIOCSPOLLRATE, SENSOR_POLLRATE_DEFAULT) < 0) {
 		close(fd);
 		errx(1, "Failed to setup poll rate");
-		return 1;
+		return PX4_ERROR;
 
 	} else {
 		PX4_INFO("Poll rate set to max (80hz)");
@@ -107,7 +107,7 @@ lis3mdl::init(struct lis3mdl_bus_option &bus)
 
 	close(fd);
 
-	return 0;
+	return PX4_OK;
 }
 
 int
@@ -115,7 +115,7 @@ lis3mdl::start_bus(struct lis3mdl_bus_option &bus, Rotation rotation)
 {
 	if (bus.dev != nullptr) {
 		errx(1, "bus option already started");
-		return 1;
+		return PX4_ERROR;
 	}
 
 	device::Device *interface = bus.interface_constructor(bus.busnum);
@@ -123,7 +123,7 @@ lis3mdl::start_bus(struct lis3mdl_bus_option &bus, Rotation rotation)
 	if (interface->init() != OK) {
 		delete interface;
 		warnx("no device on bus %u", (unsigned)bus.bus_id);
-		return 1;
+		return PX4_ERROR;
 	}
 
 	bus.dev = new LIS3MDL(interface, bus.devpath, rotation);
@@ -132,10 +132,10 @@ lis3mdl::start_bus(struct lis3mdl_bus_option &bus, Rotation rotation)
 	    bus.dev->init() != OK) {
 		delete bus.dev;
 		bus.dev = NULL;
-		return 1;
+		return PX4_ERROR;
 	}
 
-	return 0;
+	return PX4_OK;
 }
 
 int
@@ -146,7 +146,7 @@ lis3mdl::start(struct lis3mdl_bus_option &bus, Rotation rotation)
 
 	} else {
 		// this device is already started
-		return 1;
+		return PX4_ERROR;
 	}
 }
 
@@ -157,11 +157,11 @@ lis3mdl::stop(struct lis3mdl_bus_option &bus)
 		bus.dev->stop();
 		delete bus.dev;
 		bus.dev = nullptr;
-		return 0;
+		return PX4_OK;
 
 	} else {
 		// this device is already stopped
-		return 1;
+		return PX4_ERROR;
 	}
 }
 
@@ -179,7 +179,7 @@ lis3mdl::test(struct lis3mdl_bus_option &bus)
 
 	if (fd < 0) {
 		PX4_WARN("%s open failed (try 'lis3mdl start')", path);
-		return 1;
+		return PX4_ERROR;
 	}
 
 	/* do a simple demand read */
@@ -187,7 +187,7 @@ lis3mdl::test(struct lis3mdl_bus_option &bus)
 
 	if (sz != sizeof(report)) {
 		PX4_WARN("immediate read failed");
-		return 1;
+		return PX4_ERROR;
 	}
 
 	print_message(report);
@@ -195,19 +195,19 @@ lis3mdl::test(struct lis3mdl_bus_option &bus)
 	/* check if mag is onboard or external */
 	if (ioctl(fd, MAGIOCGEXTERNAL, 0) < 0) {
 		PX4_WARN("failed to get if mag is onboard or external");
-		return 1;
+		return PX4_ERROR;
 	}
 
 	/* set the queue depth to 5 */
 	if (ioctl(fd, SENSORIOCSQUEUEDEPTH, 10) != OK) {
 		PX4_WARN("failed to set queue depth");
-		return 1;
+		return PX4_ERROR;
 	}
 
 	/* start the sensor polling at 2Hz */
 	if (ioctl(fd, SENSORIOCSPOLLRATE, 2) != OK) {
 		PX4_WARN("failed to set 2Hz poll rate");
-		return 1;
+		return PX4_ERROR;
 	}
 
 	struct pollfd fds;
@@ -222,7 +222,7 @@ lis3mdl::test(struct lis3mdl_bus_option &bus)
 
 		if (ret != 1) {
 			PX4_WARN("timed out waiting for sensor data");
-			return 1;
+			return PX4_ERROR;
 		}
 
 		/* now go get it */
@@ -230,14 +230,14 @@ lis3mdl::test(struct lis3mdl_bus_option &bus)
 
 		if (sz != sizeof(report)) {
 			PX4_WARN("periodic read failed");
-			return 1;
+			return PX4_ERROR;
 		}
 
 		print_message(report);
 	}
 
 	PX4_INFO("PASS");
-	return 0;
+	return PX4_OK;
 }
 
 int
@@ -251,20 +251,20 @@ lis3mdl::reset(struct lis3mdl_bus_option &bus)
 
 	if (fd < 0) {
 		PX4_WARN("open failed ");
-		return 1;
+		return PX4_ERROR;
 	}
 
 	if (ioctl(fd, SENSORIOCRESET, 0) < 0) {
 		PX4_WARN("driver reset failed");
-		return 1;
+		return PX4_ERROR;
 	}
 
 	if (ioctl(fd, SENSORIOCSPOLLRATE, SENSOR_POLLRATE_DEFAULT) < 0) {
 		PX4_WARN("driver poll restart failed");
-		return 1;
+		return PX4_ERROR;
 	}
 
-	return 0;
+	return PX4_OK;
 }
 
 void
@@ -318,13 +318,13 @@ lis3mdl_main(int argc, char *argv[])
 
 		default:
 			lis3mdl::usage();
-			return 0;
+			return PX4_ERROR;
 		}
 	}
 
 	if (myoptind >= argc) {
 		lis3mdl::usage();
-		return -1;
+		return PX4_ERROR;
 	}
 
 	const char *verb = argv[myoptind];
@@ -380,7 +380,7 @@ lis3mdl_main(int argc, char *argv[])
 			if (lis3mdl::bus_options[i].dev == NULL) {
 				if (bus_id != LIS3MDL_BUS_ALL) {
 					PX4_ERR("bus %u not started", (unsigned)bus_id);
-					return 1;
+					return PX4_ERROR;
 
 				} else {
 					continue;
@@ -431,11 +431,11 @@ lis3mdl_main(int argc, char *argv[])
 
 	if (!dev_found) {
 		PX4_WARN("no device found, please start driver first");
-		return 1;
+		return PX4_ERROR;
 
 	} else if (!cmd_found) {
 		PX4_WARN("unrecognized command, try 'start', 'test', 'reset', 'calibrate' 'or 'info'");
-		return 1;
+		return PX4_ERROR;
 
 	} else {
 		return ret;
