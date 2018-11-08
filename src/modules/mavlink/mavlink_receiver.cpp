@@ -204,6 +204,9 @@ void MavlinkReceiver::acknowledge(uint8_t sysid, uint8_t compid, uint16_t comman
 void
 MavlinkReceiver::handle_message(mavlink_message_t *msg)
 {
+
+	//const mavlink_message_info_t * info = mavlink_get_message_info(msg);
+	//PX4_WARN("Got mavlink message %4i %s", msg->msgid, info->name);
 	if (!_mavlink->get_config_link_on()) {
 		if (_mavlink->get_mode() == Mavlink::MAVLINK_MODE_CONFIG) {
 			_mavlink->set_config_link_on(true);
@@ -553,6 +556,8 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 
 	bool send_ack = true;
 	uint8_t result = vehicle_command_ack_s::VEHICLE_RESULT_ACCEPTED;
+
+	PX4_WARN("CMD Received: %i", vehicle_command.command);
 
 	if (!target_ok) {
 		acknowledge(msg->sysid, msg->compid, cmd_mavlink.command, vehicle_command_ack_s::VEHICLE_RESULT_FAILED);

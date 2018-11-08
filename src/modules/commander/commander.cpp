@@ -604,6 +604,8 @@ Commander::handle_command(vehicle_status_s *status_local, const vehicle_command_
 		return false;
 	}
 
+	PX4_WARN("handel_command: %i", cmd.command);
+
 	/* result of the command */
 	unsigned cmd_result = vehicle_command_s::VEHICLE_CMD_RESULT_UNSUPPORTED;
 
@@ -636,6 +638,8 @@ Commander::handle_command(vehicle_status_s *status_local, const vehicle_command_
 			uint8_t base_mode = (uint8_t)cmd.param1;
 			uint8_t custom_main_mode = (uint8_t)cmd.param2;
 			uint8_t custom_sub_mode = (uint8_t)cmd.param3;
+
+			PX4_WARN("set_mode: base_mode: %i custom_main_mode: %i custom_main_mode: %i", base_mode, custom_main_mode, custom_sub_mode);
 
 			transition_result_t arming_ret = TRANSITION_NOT_CHANGED;
 
@@ -754,9 +758,11 @@ Commander::handle_command(vehicle_status_s *status_local, const vehicle_command_
 
 			if ((hil_ret != TRANSITION_DENIED) && (arming_ret != TRANSITION_DENIED) && (main_ret != TRANSITION_DENIED)) {
 				cmd_result = vehicle_command_s::VEHICLE_CMD_RESULT_ACCEPTED;
+				PX4_WARN("set_mode: VEHICLE_CMD_RESULT_ACCEPTED");
 
 			} else {
 				cmd_result = vehicle_command_s::VEHICLE_CMD_RESULT_TEMPORARILY_REJECTED;
+				PX4_WARN("set_mode: VEHICLE_CMD_RESULT_TEMPORARILY_REJECTED");
 
 				if (arming_ret == TRANSITION_DENIED) {
 					mavlink_log_critical(&mavlink_log_pub, "Rejecting arming cmd");
