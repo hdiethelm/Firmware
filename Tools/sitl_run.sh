@@ -77,7 +77,8 @@ pkill -x px4_$model || true
 jmavsim_pid=`ps aux | grep java | grep Simulator | cut -d" " -f1`
 if [ -n "$jmavsim_pid" ]
 then
-	kill $jmavsim_pid
+#	kill $jmavsim_pid
+	echo Kill: $jmavsim_pid
 fi
 
 cp $src_path/Tools/posix_lldbinit $working_dir/.lldbinit
