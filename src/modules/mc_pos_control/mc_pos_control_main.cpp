@@ -1499,6 +1499,7 @@ MulticopterPositionControl::control_offboard()
 			    _local_pos.xy_valid) {
 
 				if (!_hold_offboard_xy) {
+					PX4_WARN("Offboard XY hold enabled!");
 					_pos_sp(0) = _pos(0);
 					_pos_sp(1) = _pos(1);
 					_hold_offboard_xy = true;
@@ -1524,7 +1525,10 @@ MulticopterPositionControl::control_offboard()
 
 				_run_pos_control = false;
 
-				_hold_offboard_xy = false;
+				if (_hold_offboard_xy) {
+					PX4_WARN("Offboard XY hold disabled!");
+					_hold_offboard_xy = false;
+				}
 			}
 		}
 
@@ -1544,6 +1548,7 @@ MulticopterPositionControl::control_offboard()
 			    _local_pos.z_valid) {
 
 				if (!_hold_offboard_z) {
+					PX4_WARN("Offboard Z hold enabled!");
 					_pos_sp(2) = _pos(2);
 					_hold_offboard_z = true;
 				}
@@ -1555,7 +1560,10 @@ MulticopterPositionControl::control_offboard()
 				_vel_sp(2) = _pos_sp_triplet.current.vz;
 				_run_alt_control = false;
 
-				_hold_offboard_z = false;
+				if (_hold_offboard_z) {
+					PX4_WARN("Offboard Z hold disabled!");
+					_hold_offboard_z = false;
+				}
 			}
 		}
 
